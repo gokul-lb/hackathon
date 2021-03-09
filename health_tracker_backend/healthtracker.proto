@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "cloudstate/entity_key.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+package com.lightbend.healthtracker;
+
+message Heartbeat {
+    string az = 1 [(.cloudstate.entity_key) = true];
+    string serverName = 2;
+    string heartbeatTime = 3;
+}
+
+message ServerList {
+    string serverName = 1;
+    string heartbeatTime = 2;
+}
+
+message State {
+    repeated ServerList serverList = 1;
+}
+
+message StatusRequest {
+    string az = 1 [(.cloudstate.entity_key) = true];
+}
+
+service HealthTrackerService {
+    
+    rpc ReportHearbeat(Heartbeat) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+        post: "/health/{az}",
+        body: "*",
+      };
+    };
+
+    rpc GetServerStatusListForAz (StatusRequest) returns (State) {
+        option (google.api.http) = {
+            get: "/health/{az}"
+        };
+    };
+}

@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+import "cloudstate/entity_key.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+package com.lightbend.vdf;
+
+message VaccineDemandCommand {
+
+    string stateName = 1 [(.cloudstate.entity_key) = true];
+    string name = 2;
+    int32 quantity = 3;
+    string description = 4;
+}
+
+message VaccineSupplyCommand {
+    string stateName = 1 [(.cloudstate.entity_key) = true];
+    string name = 2;
+    int32 quantity = 3;
+    string description = 4;
+}
+
+message VaccineDemandedEvent {
+    string name = 1;
+    string description = 2;
+    int32 quantity = 3;
+    string forState = 4;
+}
+
+message VaccineSuppliedEvent {
+    string name = 1;
+    string description = 2;
+    int32 quantity = 3;
+    string forState = 4;
+}
+
+message State {
+    int32 demand = 1;
+    int32 supply = 2;
+    string stateName = 3;
+}
+
+message DemandForecastRequest {
+    string stateName = 1 [(.cloudstate.entity_key) = true];
+}
+
+service DemandForecastService {
+    
+    rpc AddDemand(VaccineDemandCommand) returns (VaccineDemandedEvent) {
+      option (google.api.http) = {
+        post: "/vdf/demand",
+        body: "*",
+      };
+    };
+
+    rpc AddSupply(VaccineSupplyCommand) returns (VaccineDemandedEvent) {
+        option (google.api.http) = {
+            post: "/vdf/supply",
+            body: "*"
+        };
+    };
+
+    rpc GetDemandForcast(DemandForecastRequest) returns (State) {
+        option (google.api.http) = {
+            get: "/vdf/demand_forecast/{stateName}",
+        };
+    };
+}
